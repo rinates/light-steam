@@ -1,17 +1,27 @@
 import * as inquirer from 'inquirer';
 
-export default () => {
+export default async (): Promise<void> => {
   inquirer.prompt([
     {
-      type: 'List',
-      name: 'theme',
+      type: 'list',
+      name: 'func',
       message: 'Choose one of the functions:',
       choices: [
         'Add games to the steam library',
         'Remove red table',
+        'All of the above',
       ],
+      filter(val) {
+        return val.toLowerCase();
+      },
     },
-  ]).then((answer) => {
-    console.log(answer);
+    {
+      type: 'confirm',
+      name: 'toUseProxy',
+      message: 'Do you want to use proxy?',
+      default: false,
+    },
+  ]).then((answers) => {
+    console.log(answers);
   });
 };
