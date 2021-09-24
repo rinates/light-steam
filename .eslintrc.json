@@ -19,8 +19,7 @@
       "error",
       "ignorePackages",
       {
-        "ts": "never",
-        "d.ts": "never"
+        "ts": "never"
       }
     ],
     "no-undef": "off",
