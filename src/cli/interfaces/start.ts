@@ -1,24 +1,13 @@
-import figlet from 'figlet';
-import chalk from 'chalk';
-import menu from './menu';
+import clear from 'clear';
 
-export default async (): Promise<void> => {
-  figlet('light stream', {
-    font: 'Standard',
-  }, async (err, data) => {
-    if (err) {
-      logger.error(err);
+import config, { ConfigAttributes } from '@/config';
+import showSettings from '@/cli/interfaces/showSettings';
+import initial from '@/cli/interfaces/initial';
 
-      return;
-    }
+export default async () => {
+  const settings: ConfigAttributes = config();
 
-    console.log([
-      chalk.green(data),
-      `${' '.repeat(17)}${chalk.green(chalk.bold('Development @rinaigen'))}`,
-      `${' '.repeat(16)}${chalk.gray('Last update: xx.xx.xxxx')}`,
-      '',
-    ].join('\n'));
-
-    await menu();
-  });
+  clear();
+  await initial();
+  await showSettings(settings);
 };

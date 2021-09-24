@@ -24,7 +24,8 @@
       }
     ],
     "no-undef": "off",
-    "no-console": "off"
+    "no-console": "off",
+    "class-methods-use-this": "off"
   },
   "settings": {
     "import/resolver": {
