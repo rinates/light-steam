@@ -38,6 +38,8 @@ export default class AccountController {
   }
 
   public async doAccountUnlock(): Promise<SteamUnlockStatus> {
+    logger.info(`Trying to unlock account [${this.steam.username}]`);
+
     const form = new FormData();
     form.append('unlockcode', this.code);
     form.append('sessionid', this.steam.steamId);
@@ -58,6 +60,8 @@ export default class AccountController {
   }
 
   public async doSetPublicProfile(): Promise<PublicProfile> {
+    logger.info(`Set public profile settings (open profile if it's private) [${this.steam.username}]`);
+
     const form = {
       sessionid: this.steam.sessionId,
       Privacy: JSON.stringify(

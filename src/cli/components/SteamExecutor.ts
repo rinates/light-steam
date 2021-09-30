@@ -220,7 +220,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   }
 
   public async setProfileSettings(): Promise<void> {
-    logger.info(`Set public profile (default settings) [${this.email}]`);
+    logger.info(`Set profile (default settings) [${this.email}]`);
 
     await got(
       `https://steamcommunity.com/profiles/${this.steamId}/edit?welcomed=1`,
