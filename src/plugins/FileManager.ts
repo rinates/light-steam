@@ -7,6 +7,7 @@ export default class FileManager {
 
   public async saveConfig(config: ConfigAttributes) {
     await fs.writeFile(`${this.currentDir}/config/default.json`, JSON.stringify({ Settings: config }, null, 4));
+    logger.info('Config was created success');
   }
 
   public async checkDirsAndFiles() {
@@ -24,6 +25,8 @@ export default class FileManager {
         } else {
           fs.mkdir(fullPath);
         }
+
+        logger.info(`${path} was created success`);
       }
     });
   }

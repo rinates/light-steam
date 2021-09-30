@@ -9,5 +9,6 @@ export default async (settings: ConfigAttributes): Promise<void> => {
     `${chalk.bold(' Use proxy')}: ${settings.toUseProxy ? chalk.green(settings.toUseProxy) : chalk.red(settings.toUseProxy)}`,
     `${chalk.bold(' Workers')}: ${chalk.yellow(settings.workers)}`,
     `${chalk.bold(' Delay')}: ${chalk.yellow(`${settings.delay}s`)}`,
+    '',
   ].join('\n'));
 };

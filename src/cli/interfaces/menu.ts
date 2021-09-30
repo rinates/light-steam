@@ -2,8 +2,9 @@ import * as inquirer from 'inquirer';
 import clear from 'clear';
 
 import FileManager from '@/plugins/FileManager';
-import initial from '@/cli/interfaces/initial';
-import start from '@/cli/interfaces/start';
+
+import { initial, start } from '@/cli/interfaces';
+import { ConfigIsNotFound } from '@/cli/errors';
 
 export default async (): Promise<void> => {
   const fileManager = new FileManager();
@@ -48,14 +49,14 @@ export default async (): Promise<void> => {
           return Number(val) || 10;
         },
       },
-    ]).then((answers) => {
-      fileManager.saveConfig(answers);
+    ]).then(async (answers) => {
+      await fileManager.saveConfig(answers);
 
-      clear();
-      start();
+      await clear();
+      await start();
     });
   };
-  const askConfig = () => {
+  const askConfig = async () => {
     inquirer.prompt([
       {
         type: 'confirm',
@@ -75,5 +76,5 @@ export default async (): Promise<void> => {
     });
   };
 
-  askConfig();
+  await askConfig();
 };

@@ -1,6 +1,6 @@
-import inter from './interfaces';
+import { start, menu } from '@/cli/interfaces';
 
 export default async () => {
-  await inter.start();
-  await inter.menu();
+  await start();
+  await menu();
 };

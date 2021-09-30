@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
-    "build": "tsc"
+    "build": "tsc",
+    "commit": "cz"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/clear": "^0.1.2",
     "chalk": "^4.1.2",
     "clear": "^0.1.0",
     "clui": "^0.3.6",
@@ -21,7 +21,10 @@
     "form-data": "^4.0.0",
     "got": "^11.8.2",
     "hpagent": "^0.1.2",
+    "html-to-text": "^8.0.0",
+    "imap-simple": "^5.1.0",
     "inquirer": "^8.1.5",
+    "lodash": "^4.17.21",
     "minimist": "^1.2.5",
     "module-alias": "^2.2.2",
     "node-bignumber": "^1.2.2",
@@ -29,20 +32,30 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@types/clear": "^0.1.2",
     "@types/clui": "^0.3.1",
     "@types/config": "^0.0.39",
     "@types/figlet": "^1.5.4",
     "@types/form-data": "^2.5.0",
+    "@types/html-to-text": "^8.0.1",
+    "@types/imap-simple": "^4.2.5",
     "@types/inquirer": "^8.1.2",
+    "@types/lodash": "^4.14.175",
     "@types/module-alias": "^2.0.1",
     "@types/tough-cookie": "^4.0.1",
     "@typescript-eslint/eslint-plugin": "^4.31.2",
     "@typescript-eslint/parser": "^4.31.2",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-import": "^2.24.2",
     "npm": "^7.24.0",
     "typescript": "^4.4.3"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }

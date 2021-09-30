@@ -24,7 +24,8 @@
     ],
     "no-undef": "off",
     "no-console": "off",
-    "class-methods-use-this": "off"
+    "class-methods-use-this": "off",
+    "no-await-in-loop": "off"
   },
   "settings": {
     "import/resolver": {

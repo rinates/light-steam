@@ -1,7 +1,9 @@
-import start from './initial';
+import start from './start';
 import menu from './menu';
+import initial from './initial';
+import showSettings from './showSettings';
 
-export default {
-  start,
-  menu,
-};
+export { start };
+export { menu };
+export { initial };
+export { showSettings };

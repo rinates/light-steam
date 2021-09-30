@@ -1,0 +1,8 @@
+{
+    "Settings": {
+        "func": "add games to the steam library",
+        "toUseProxy": false,
+        "workers": 1,
+        "delay": 10
+    }
+}

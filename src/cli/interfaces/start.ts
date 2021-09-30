@@ -5,9 +5,9 @@ import showSettings from '@/cli/interfaces/showSettings';
 import initial from '@/cli/interfaces/initial';
 
 export default async () => {
-  const settings: ConfigAttributes = config();
+  const settings: ConfigAttributes = await config();
 
-  clear();
+  await clear();
   await initial();
   await showSettings(settings);
 };

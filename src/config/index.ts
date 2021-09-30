@@ -1,5 +1,4 @@
-import config from 'config';
-import ConfigIsNotFound from '@/cli/errors/ConfigIsNotFound';
+import { promises as fs } from 'fs';
 
 export interface ConfigAttributes {
   func: string;
@@ -8,10 +7,8 @@ export interface ConfigAttributes {
   delay: number;
 }
 
-export default () => {
-  try {
-    return config.get('Settings') as ConfigAttributes;
-  } catch (error) {
-    throw new ConfigIsNotFound('There is not the config, you should create this one');
-  }
+export default async () => {
+  const cfg: ConfigAttributes = JSON.parse(await fs.readFile(`${process.cwd()}/config/default.json`, 'utf-8')).Settings;
+
+  return cfg;
 };

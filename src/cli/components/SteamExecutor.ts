@@ -6,6 +6,8 @@ import { HttpsProxyAgent } from 'hpagent';
 import FormData from 'form-data';
 
 import rsaGenerator from '@/cli/utils/rsa';
+import ImapController from '@/cli/components/ImapController';
+import { CodeIsNotFound, EmailNeeded, NoSteamId } from '@/cli/errors';
 
 interface SteamExecutorAttributes {
   username: string;
@@ -17,7 +19,7 @@ interface Encrypt {
   timestamp: string
 }
 
-interface Login {
+export interface Login {
   success: boolean,
   // eslint-disable-next-line camelcase
   captcha_needed?: boolean,
@@ -27,20 +29,26 @@ interface Login {
   [key: string]: any
 }
 
-class SteamExecutor implements SteamExecutorAttributes {
+export default class SteamExecutor implements SteamExecutorAttributes {
   public cookieJar: CookieJar = new CookieJar();
 
   public sessionId: string = SteamExecutor.generateSessionId();
 
-  public username
+  public loginParams: Login | undefined;
 
-  public password;
+  private email: string | undefined;
 
-  private emailauth: string | undefined;
+  private emailPassword: string | undefined;
 
-  private loginParams: Login | undefined;
+  private emailAuth: string | undefined;
 
   private proxyAgent: HttpsProxyAgent | undefined;
+
+  public steamId: string | undefined;
+
+  public username: string;
+
+  public password: string;
 
   private steamUrls: Array<string> = [
     'https://steamcommunity.com',
@@ -48,13 +56,13 @@ class SteamExecutor implements SteamExecutorAttributes {
     'https://help.steampowered.com',
   ];
 
-  private static generateSessionId() {
-    return crypto.randomBytes(12).toString('hex');
-  }
-
   constructor(username: string, password: string) {
     this.username = username;
     this.password = password;
+  }
+
+  private static generateSessionId() {
+    return crypto.randomBytes(12).toString('hex');
   }
 
   public async login() {
@@ -98,7 +106,7 @@ class SteamExecutor implements SteamExecutorAttributes {
       password: rsaEncryptedData.encryptPassword,
       rsatimestamp: rsaEncryptedData.timestamp,
       remember_login: 'true',
-      emailauth: this.emailauth || '',
+      emailauth: this.emailAuth || '',
       donotcache: Date.now(),
     };
   }
@@ -119,6 +127,55 @@ class SteamExecutor implements SteamExecutorAttributes {
         throw new Error(err);
       });
   }
-}
 
-export default SteamExecutor;
+  private async checkGuard(params: Login): Promise<Login | undefined> {
+    if (params.emailauth_needed) {
+      if (this.email && this.emailPassword) {
+        const mail: ImapController = new ImapController(this.email, this.emailPassword);
+
+        mail.setMailSettings('imap.mail.ru', 993);
+        await mail.setConnection();
+
+        const setDelay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+        let code: string | null | undefined;
+
+        for (let i = 0; i < 20; i += 1) {
+          await setDelay(3 * 3000);
+          const uids: Array<number> = await mail.getAllUids();
+          code = await mail.getCode(uids[0]);
+
+          if (code) {
+            this.emailAuth = code;
+
+            return this.sendLoginRequest();
+          }
+        }
+
+        throw CodeIsNotFound;
+      } else {
+        throw EmailNeeded;
+      }
+    }
+
+    return this.loginParams;
+  }
+
+  public setEmail(email: string, emailPassword: string) {
+    this.email = email;
+    this.emailPassword = emailPassword;
+  }
+
+  private async setSteamID() {
+    let steamId: string | undefined;
+
+    if (this.loginParams) {
+      steamId = this.loginParams.transfer_parameters.steamid;
+    }
+
+    if (!steamId) {
+      throw NoSteamId;
+    }
+
+    this.steamId = steamId;
+  }
+}
