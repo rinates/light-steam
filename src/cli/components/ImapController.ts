@@ -19,7 +19,9 @@ export default class ImapController {
     this.pass = pass;
   }
 
-  setMailSettings(host: string, port: number) {
+  public async setMailSettings(host: string, port: number) {
+    logger.info(`Set mail params [${this.email}]`);
+
     this.config = {
       imap: {
         user: this.email,
@@ -33,6 +35,8 @@ export default class ImapController {
   }
 
   public async setConnection(): Promise<void> {
+    logger.info(`Trying to set connection [${this.email}]`);
+
     if (this.config) {
       this.connection = await imaps.connect(this.config);
       await this.connection.openBox('INBOX');

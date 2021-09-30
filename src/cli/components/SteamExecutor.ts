@@ -1,4 +1,4 @@
-import { CookieJar } from 'tough-cookie';
+import { Cookie, CookieJar } from 'tough-cookie';
 import { hex2b64, Key } from 'node-bignumber';
 import crypto from 'crypto';
 import got from 'got';
@@ -6,7 +6,10 @@ import { HttpsProxyAgent } from 'hpagent';
 import FormData from 'form-data';
 
 import rsaGenerator from '@/cli/utils/rsa';
-import { NoSteamId } from '@/cli/errors';
+import {
+  CaptchaNeeded, CodeIsNotFound, EmailNeeded, NoSteamId,
+} from '@/cli/errors';
+import ImapController from '@/cli/components/ImapController';
 
 interface SteamExecutorAttributes {
   username: string;
@@ -37,6 +40,10 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
   public password: string;
 
+  public email: string | undefined;
+
+  public emailPassword: string | undefined;
+
   public loginParams: Login | undefined;
 
   public steamId: string | undefined;
@@ -62,9 +69,21 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
   public async login() {
     this.loginParams = await this.sendLoginRequest();
+    this.loginParams = await this.checkGuard(this.loginParams);
+
+    if (this.loginParams) {
+      await SteamExecutor.checkCaptcha(this.loginParams);
+      await this.assertValid(this.loginParams);
+      await this.setSteamID();
+      await this.setProfileSettings();
+
+      logger.info(`Success login [${this.email}]`);
+    }
   }
 
   private async sendLoginRequest() {
+    logger.info(`Send login request [${this.username}]`);
+
     await got('https://steamcommunity.com/', { cookieJar: this.cookieJar });
 
     const params = await this.prepareParams();
@@ -94,6 +113,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   }
 
   private async prepareParams() {
+    logger.info(`Prepare params to do login request [${this.username}]`);
+
     const rsaEncryptedData = await this.encryptPassword();
 
     return {
@@ -107,6 +128,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   }
 
   private async encryptPassword(): Promise<Encrypt> {
+    logger.info(`Encrypt password [${this.username}]`);
+
     return rsaGenerator(this.username, this.proxyAgent)
       .then((data: any) => {
         const rsa = new Key();
@@ -124,6 +147,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   }
 
   private async setSteamID() {
+    logger.info(`Set steam id [${this.username}]`);
+
     if (this.loginParams) {
       this.steamId = this.loginParams.transfer_parameters.steamid;
     }
@@ -131,5 +156,79 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     if (!this.steamId) {
       throw NoSteamId;
     }
+  }
+
+  private async assertValid(params: Login): Promise<void> {
+    logger.info(`Set session id for all domains [${this.username}]`);
+
+    if (!params.success) {
+      throw new Error(params.message);
+    }
+
+    this.steamUrls.forEach((url) => {
+      const cookies = Cookie.parse(`sessionid=${this.sessionId}; Domain=${url.substring(8)}; Path=/`);
+
+      // @ts-ignore
+      this.cookieJar.store.putCookie(cookies, () => {});
+    });
+  }
+
+  private static async checkCaptcha(params: Login): Promise<void> {
+    if (params.captcha_needed) {
+      throw CaptchaNeeded;
+    }
+  }
+
+  public setEmail(email: string, password: string) {
+    this.email = email;
+    this.emailPassword = password;
+  }
+
+  private async checkGuard(params: Login): Promise<Login | undefined> {
+    logger.info(`Check guard [${this.username}]`);
+
+    if (params.emailauth_needed) {
+      if (this.email && this.emailPassword) {
+        const mail: ImapController = new ImapController(this.email, this.emailPassword);
+        const setDelay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        await mail.setMailSettings('imap.mail.ru', 993);
+        await mail.setConnection();
+
+        for (let i = 0; i < 20; i += 1) {
+          logger.info(`Getting auth code [${this.email}]`);
+
+          await setDelay(3 * 1000);
+
+          const uids: Array<number> = await mail.getAllUids();
+          const code: string | null = await mail.getCode(uids[0]);
+
+          if (code) {
+            this.emailAuth = code;
+
+            return this.sendLoginRequest();
+          }
+        }
+
+        throw CodeIsNotFound;
+      }
+
+      throw EmailNeeded;
+    }
+
+    return this.loginParams;
+  }
+
+  public async setProfileSettings(): Promise<void> {
+    logger.info(`Set public profile (default settings) [${this.email}]`);
+
+    await got(
+      `https://steamcommunity.com/profiles/${this.steamId}/edit?welcomed=1`,
+      {
+        cookieJar: this.cookieJar,
+        followRedirect: true,
+        timeout: 5000,
+      },
+    );
   }
 }
