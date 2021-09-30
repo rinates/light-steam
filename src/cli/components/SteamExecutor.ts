@@ -59,13 +59,13 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     'https://help.steampowered.com',
   ];
 
-  private static generateSessionId() {
-    return crypto.randomBytes(12).toString('hex');
-  }
-
   constructor(username: string, password: string) {
     this.username = username;
     this.password = password;
+  }
+
+  private static generateSessionId(): string {
+    return crypto.randomBytes(12).toString('hex');
   }
 
   public async login() {
@@ -230,5 +230,25 @@ export default class SteamExecutor implements SteamExecutorAttributes {
         timeout: 5000,
       },
     );
+  }
+
+  public async setProxy(proxy: string): Promise<void> {
+    logger.info(`Settings proxy ${proxy}`);
+
+    let proxyArgs: string | Array<string> = proxy.split(':');
+
+    if (proxyArgs.length === 4) {
+      proxyArgs = `${proxyArgs.slice(2).join(':')}@${proxyArgs.slice(0, 2).join(':')}`;
+    } else {
+      proxyArgs = proxy;
+    }
+
+    this.proxyAgent = new HttpsProxyAgent({
+      keepAlive: true,
+      keepAliveMsecs: 1000,
+      maxSockets: 256,
+      maxFreeSockets: 256,
+      proxy: `http://${proxyArgs}`,
+    });
   }
 }
