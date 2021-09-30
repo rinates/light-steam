@@ -7,7 +7,7 @@ import FormData from 'form-data';
 
 import rsaGenerator from '@/cli/utils/rsa';
 import {
-  CaptchaNeeded, CodeIsNotFound, EmailNeeded, NoSteamId,
+  CaptchaNeeded, CodeIsNotFound, EmailNeeded, NoSteamId, TimeoutGettingAuthCode,
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
 
@@ -210,7 +210,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
           }
         }
 
-        throw CodeIsNotFound;
+        throw TimeoutGettingAuthCode;
       }
 
       throw EmailNeeded;

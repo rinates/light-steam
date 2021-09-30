@@ -3,7 +3,7 @@ import { convert } from 'html-to-text';
 import _ from 'lodash';
 import { ImapSimple, ImapSimpleOptions } from 'imap-simple';
 
-import { MailIsNotInstalled } from '@/cli/errors';
+import { CodeIsNotFound, MailIsNotInstalled } from '@/cli/errors';
 
 export default class ImapController {
   public config: ImapSimpleOptions | undefined;
@@ -57,7 +57,7 @@ export default class ImapController {
       messages = await this.connection.search(searchCriteria, fetchOptions);
 
       if (messages.length === 0) {
-        throw new Error('email not found');
+        throw CodeIsNotFound;
       }
 
       const fullBody: any = _.find(messages[0].parts, { which: '' });
