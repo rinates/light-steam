@@ -6,6 +6,8 @@ import TimeoutGettingAuthCode from '@/cli/errors/TimeoutGettingAuthCode';
 import MailIsNotInstalled from '@/cli/errors/MailIsNotInstalled';
 import CodeIsNotFound from '@/cli/errors/CodeIsNotFound';
 import NoSteamId from '@/cli/errors/NoSteamId';
+import NoProxies from '@/cli/errors/NoProxies';
+import NoAccounts from '@/cli/errors/NoAccounts';
 
 export { ConfigIsNotFound };
 export { ProxyIsNotFound };
@@ -15,3 +17,5 @@ export { TimeoutGettingAuthCode };
 export { MailIsNotInstalled };
 export { CodeIsNotFound };
 export { NoSteamId };
+export { NoProxies };
+export { NoAccounts };

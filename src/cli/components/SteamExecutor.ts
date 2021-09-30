@@ -10,6 +10,7 @@ import {
   CaptchaNeeded, CodeIsNotFound, EmailNeeded, NoSteamId, TimeoutGettingAuthCode,
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
+import delay from '@/cli/utils/delay';
 
 interface SteamExecutorAttributes {
   username: string;
@@ -190,7 +191,6 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     if (params.emailauth_needed) {
       if (this.email && this.emailPassword) {
         const mail: ImapController = new ImapController(this.email, this.emailPassword);
-        const setDelay = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
         await mail.setMailSettings('imap.mail.ru', 993);
         await mail.setConnection();
@@ -198,7 +198,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
         for (let i = 0; i < 20; i += 1) {
           logger.info(`Getting auth code [${this.email}]`);
 
-          await setDelay(3 * 1000);
+          await delay(3);
 
           const uids: Array<number> = await mail.getAllUids();
           const code: string | null = await mail.getCode(uids[0]);
