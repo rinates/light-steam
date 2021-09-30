@@ -6,6 +6,7 @@ import { HttpsProxyAgent } from 'hpagent';
 import FormData from 'form-data';
 
 import rsaGenerator from '@/cli/utils/rsa';
+import { NoSteamId } from '@/cli/errors';
 
 interface SteamExecutorAttributes {
   username: string;
@@ -17,7 +18,7 @@ interface Encrypt {
   timestamp: string
 }
 
-interface Login {
+export interface Login {
   success: boolean,
   // eslint-disable-next-line camelcase
   captcha_needed?: boolean,
@@ -27,18 +28,20 @@ interface Login {
   [key: string]: any
 }
 
-class SteamExecutor implements SteamExecutorAttributes {
+export default class SteamExecutor implements SteamExecutorAttributes {
   public cookieJar: CookieJar = new CookieJar();
 
   public sessionId: string = SteamExecutor.generateSessionId();
 
-  public username
+  public username: string;
 
-  public password;
+  public password: string;
 
-  private emailauth: string | undefined;
+  public loginParams: Login | undefined;
 
-  private loginParams: Login | undefined;
+  public steamId: string | undefined;
+
+  private emailAuth: string | undefined;
 
   private proxyAgent: HttpsProxyAgent | undefined;
 
@@ -98,7 +101,7 @@ class SteamExecutor implements SteamExecutorAttributes {
       password: rsaEncryptedData.encryptPassword,
       rsatimestamp: rsaEncryptedData.timestamp,
       remember_login: 'true',
-      emailauth: this.emailauth || '',
+      emailauth: this.emailAuth || '',
       donotcache: Date.now(),
     };
   }
@@ -119,6 +122,14 @@ class SteamExecutor implements SteamExecutorAttributes {
         throw new Error(err);
       });
   }
-}
 
-export default SteamExecutor;
+  private async setSteamID() {
+    if (this.loginParams) {
+      this.steamId = this.loginParams.transfer_parameters.steamid;
+    }
+
+    if (!this.steamId) {
+      throw NoSteamId;
+    }
+  }
+}

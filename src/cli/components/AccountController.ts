@@ -23,7 +23,7 @@ export default class AccountController {
 
   private cookieJar: CookieJar;
 
-  private loginParams: Login | undefined;
+  public loginParams: Login | undefined;
 
   private code: string | undefined;
 
