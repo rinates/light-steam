@@ -52,7 +52,7 @@ export default class FileManager {
     await fs.writeFile(`${this.currentDir}/${this.resultFileName}`, '');
   }
 
-  public async appendToResult(account: string, steamId: string | undefined) {
+  public async appendToResult(account: string, steamId: string) {
     logger.info(`Append account to the result [${account}]`);
 
     const data = [

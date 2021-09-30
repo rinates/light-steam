@@ -7,7 +7,7 @@ import FormData from 'form-data';
 
 import rsaGenerator from '@/cli/utils/rsa';
 import {
-  CaptchaNeeded, CodeIsNotFound, EmailNeeded, NoSteamId, TimeoutGettingAuthCode,
+  CaptchaNeeded, EmailNeeded, NoSteamId, TimeoutGettingAuthCode,
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
 import delay from '@/cli/utils/delay';
