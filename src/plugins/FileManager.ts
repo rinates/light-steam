@@ -12,6 +12,13 @@ export default class FileManager {
 
   private baseFile: string = 'base.txt';
 
+  private currentDate: Date = new Date();
+
+  private resultFileName: string = [
+    `${this.currentDate.getFullYear()}-${this.currentDate.getMonth()}-${this.currentDate.getDate()}_`,
+    `${this.currentDate.getHours()}:${this.currentDate.getMinutes()}:${this.currentDate.getSeconds()}`,
+  ].join('');
+
   private currentDir: string = process.cwd();
 
   public async saveConfig(config: ConfigAttributes) {
@@ -37,6 +44,24 @@ export default class FileManager {
 
   public configExists(): boolean {
     return existsSync(`${this.currentDir}/config/default.json`);
+  }
+
+  public async createResult(): Promise<void> {
+    logger.info(`Empty result file was created as ${this.resultFileName}.txt`);
+
+    await fs.writeFile(`${this.currentDir}/${this.resultFileName}`, '');
+  }
+
+  public async appendToResult(account: string, steamId: string | undefined) {
+    logger.info(`Append account to the result [${account}]`);
+
+    const data = [
+      '================================================================',
+      `${account}`,
+      `SteamURL: https://steamcommunity.com/profiles/${steamId}`,
+    ].join('\n');
+
+    await fs.appendFile(this.resultFileName, data);
   }
 
   public async getAccounts(): Promise<Array<string>> {
