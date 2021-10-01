@@ -10,7 +10,7 @@ import {
   CaptchaNeeded, EmailNeeded, NoSteamId, TimeoutGettingAuthCode,
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
-import delay from '@/cli/utils/delay';
+import delay from '@/cli/utils/sleep';
 
 interface SteamExecutorAttributes {
   username: string;
