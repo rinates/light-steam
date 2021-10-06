@@ -1,6 +1,7 @@
 import got from 'got';
 import FormData from 'form-data';
 import { CookieJar } from 'tough-cookie';
+import { JSDOM } from 'jsdom';
 
 import SteamExecutor, { Login } from '@/cli/components/SteamExecutor';
 
@@ -9,6 +10,11 @@ interface PublicProfile {
   Privacy: any,
 
   [key: string]: any
+}
+
+export interface LimitAttributes {
+  limit: boolean;
+  balance: number;
 }
 
 export interface SteamUnlockStatus {
@@ -59,6 +65,36 @@ export default class AccountController {
     ).json();
   }
 
+  public async checkAccountLimit(): Promise<LimitAttributes> {
+    logger.info(`Check account is limit or not (balance if it's) [${this.steam.username}]`);
+
+    return got(
+      'https://help.steampowered.com/',
+      {
+        cookieJar: this.cookieJar,
+        timeout: 5000,
+        agent: {
+          // @ts-ignore
+          https: this.steam.proxyAgent,
+        },
+      },
+    )
+      .then((response) => {
+        const dom = new JSDOM(response.body);
+        const balance = dom.window.document.querySelector('.help_event_limiteduser_spend span');
+
+        const limitInfo: LimitAttributes = {
+          limit: !!balance,
+          balance: balance ? Number(String(balance.textContent).split('/')[0].trim().slice(1)) : 0,
+        };
+
+        return limitInfo;
+      })
+      .catch((err) => {
+        throw new Error(err);
+      });
+  }
+
   public async doSetPublicProfile(): Promise<PublicProfile> {
     logger.info(`Set public profile settings (open profile if it's private) [${this.steam.username}]`);
 
@@ -83,9 +119,33 @@ export default class AccountController {
         cookieJar: this.steam.cookieJar,
         form,
         timeout: 5000,
+        agent: {
+          // @ts-ignore
+          https: this.steam.proxyAgent,
+        },
       },
     ).json();
 
     return publicProfileResponse;
+  }
+
+  public async addGamesToLibrary(games: Array<string>): Promise<void> {
+    for (const game of games) {
+      const form = new FormData();
+      form.append('action', 'add_to_cart');
+      form.append('sessionid', this.steam.steamId);
+      form.append('subid', game);
+
+      logger.info(`Add game ${game} [${this.steam.username}]`);
+
+      await got.post(
+        'https://store.steampowered.com/checkout/addfreelicense',
+        {
+          cookieJar: this.cookieJar,
+          form,
+          timeout: 10000,
+        },
+      );
+    }
   }
 }

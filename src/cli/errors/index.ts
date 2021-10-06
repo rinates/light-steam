@@ -8,6 +8,7 @@ import CodeIsNotFound from '@/cli/errors/CodeIsNotFound';
 import NoSteamId from '@/cli/errors/NoSteamId';
 import NoProxies from '@/cli/errors/NoProxies';
 import NoAccounts from '@/cli/errors/NoAccounts';
+import NoGames from '@/cli/errors/NoGames';
 import AccountInvalid from '@/cli/errors/AccountInvalid';
 
 export { ConfigIsNotFound };
@@ -20,4 +21,5 @@ export { CodeIsNotFound };
 export { NoSteamId };
 export { NoProxies };
 export { NoAccounts };
+export { NoGames };
 export { AccountInvalid };

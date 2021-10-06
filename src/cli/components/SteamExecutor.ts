@@ -47,6 +47,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
   public loginParams: Login | undefined;
 
+  public loginParamsHelp: Login | undefined;
+
   public steamId: string | undefined;
 
   private emailAuth: string | undefined;
@@ -71,6 +73,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   public async login() {
     this.loginParams = await this.sendLoginRequest();
     this.loginParams = await this.checkGuard(this.loginParams);
+    this.loginParamsHelp = await this.sendLoginRequestHelp();
+    this.loginParamsHelp = await this.checkGuard(this.loginParamsHelp);
 
     if (this.loginParams) {
       await SteamExecutor.checkCaptcha(this.loginParams);
@@ -80,6 +84,36 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
       logger.info(`Success login [${this.email}]`);
     }
+  }
+
+  private async sendLoginRequestHelp() {
+    logger.info(`Send login help request [${this.username}]`);
+
+    await got('https://help.steampowered.com/', { cookieJar: this.cookieJar });
+
+    const params = await this.prepareParams();
+    const form = new FormData();
+
+    Object.entries(params).forEach((entry) => {
+      const [key, value] = entry;
+
+      form.append(key, value);
+    });
+
+    const loginResponse: Login = await got.post(
+      'https://help.steampowered.com/en/login/dologin/',
+      {
+        cookieJar: this.cookieJar,
+        body: form,
+        followRedirect: true,
+        timeout: 10000,
+        agent: {
+          https: this.proxyAgent,
+        },
+      },
+    ).json();
+
+    return loginResponse;
   }
 
   private async sendLoginRequest() {
@@ -96,12 +130,11 @@ export default class SteamExecutor implements SteamExecutorAttributes {
       form.append(key, value);
     });
 
-    const loginResponse: Login = await got(
+    const loginResponse: Login = await got.post(
       'https://steamcommunity.com/login/dologin/',
       {
-        method: 'POST',
         cookieJar: this.cookieJar,
-        form,
+        body: form,
         followRedirect: true,
         timeout: 10000,
         agent: {
@@ -155,7 +188,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     }
 
     if (!this.steamId) {
-      throw NoSteamId;
+      throw new NoSteamId('Something wrong. Failed to get a steam id');
     }
   }
 
@@ -163,7 +196,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     logger.info(`Set session id for all domains [${this.username}]`);
 
     if (!params.success) {
-      throw new Error(params.message);
+      throw new Error(params.message || 'Failed to login');
     }
 
     this.steamUrls.forEach((url) => {
@@ -176,7 +209,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
   private static async checkCaptcha(params: Login): Promise<void> {
     if (params.captcha_needed) {
-      throw CaptchaNeeded;
+      throw new CaptchaNeeded('You have to change proxy. There is a captcha');
     }
   }
 
@@ -210,17 +243,17 @@ export default class SteamExecutor implements SteamExecutorAttributes {
           }
         }
 
-        throw TimeoutGettingAuthCode;
+        throw new TimeoutGettingAuthCode('Timeout to get an auth code');
       }
 
-      throw EmailNeeded;
+      throw new EmailNeeded('Add an email if you have this one');
     }
 
     return this.loginParams;
   }
 
   public async setProfileSettings(): Promise<void> {
-    logger.info(`Set profile (default settings) [${this.email}]`);
+    logger.info(`Set profile (default settings) [${this.username}]`);
 
     await got(
       `https://steamcommunity.com/profiles/${this.steamId}/edit?welcomed=1`,
