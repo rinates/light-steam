@@ -27,7 +27,7 @@ export interface SteamUnlockStatus {
 export default class AccountController {
   public steam: SteamExecutor;
 
-  private cookieJar: CookieJar;
+  public cookieJar: CookieJar;
 
   public loginParams: Login | undefined;
 
@@ -116,7 +116,7 @@ export default class AccountController {
     const publicProfileResponse: PublicProfile = await got.post(
       `https://steamcommunity.com/profiles/${this.steam.steamId}/ajaxsetprivacy`,
       {
-        cookieJar: this.steam.cookieJar,
+        cookieJar: this.cookieJar,
         form,
         timeout: 5000,
         agent: {
@@ -131,10 +131,11 @@ export default class AccountController {
 
   public async addGamesToLibrary(games: Array<string>): Promise<void> {
     for (const game of games) {
-      const form = new FormData();
-      form.append('action', 'add_to_cart');
-      form.append('sessionid', this.steam.steamId);
-      form.append('subid', game);
+      const form = {
+        action: 'add_to_cart',
+        sessionid: this.steam.sessionId,
+        subid: game,
+      };
 
       logger.info(`Add game ${game} [${this.steam.username}]`);
 
@@ -143,7 +144,11 @@ export default class AccountController {
         {
           cookieJar: this.cookieJar,
           form,
-          timeout: 10000,
+          timeout: 5000,
+          agent: {
+            // @ts-ignore
+            https: this.steam.proxyAgent,
+          },
         },
       );
     }

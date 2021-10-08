@@ -99,7 +99,7 @@ const executor = async (settings: ConfigAttributes) => {
   await fileManager.createResult();
 
   for (let i = 0; i < accounts.length; i += 1) {
-    const account = accounts[i];
+    const account = accounts[i].trim();
     proxy = proxies ? proxies[proxies.length % i] : undefined;
 
     q
@@ -113,7 +113,11 @@ const executor = async (settings: ConfigAttributes) => {
       .then(async (value) => {
         await fileManager.appendToResult(value.account, value.limitInfo, value.steamId);
       })
-      .catch((err) => logger.error(err.message));
+      .catch((err) => {
+        fileManager.appendToFailed(account);
+
+        logger.error(err.message);
+      });
 
     await sleep(delay);
   }

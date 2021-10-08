@@ -76,9 +76,13 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     this.loginParamsHelp = await this.sendLoginRequestHelp();
     this.loginParamsHelp = await this.checkGuard(this.loginParamsHelp);
 
-    if (this.loginParams) {
+    if (this.loginParams && this.loginParamsHelp) {
       await SteamExecutor.checkCaptcha(this.loginParams);
-      await this.assertValid(this.loginParams);
+      await SteamExecutor.checkCaptcha(this.loginParamsHelp);
+      await SteamExecutor.assertValid(this.loginParams);
+      await SteamExecutor.assertValid(this.loginParamsHelp);
+      await this.performRedirects(this.loginParams);
+      await this.setSessionId();
       await this.setSteamID();
       await this.setProfileSettings();
 
@@ -192,12 +196,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     }
   }
 
-  private async assertValid(params: Login): Promise<void> {
+  private async setSessionId() {
     logger.info(`Set session id for all domains [${this.username}]`);
-
-    if (!params.success) {
-      throw new Error(params.message || 'Failed to login');
-    }
 
     this.steamUrls.forEach((url) => {
       const cookies = Cookie.parse(`sessionid=${this.sessionId}; Domain=${url.substring(8)}; Path=/`);
@@ -205,6 +205,12 @@ export default class SteamExecutor implements SteamExecutorAttributes {
       // @ts-ignore
       this.cookieJar.store.putCookie(cookies, () => {});
     });
+  }
+
+  private static async assertValid(params: Login): Promise<void> {
+    if (!params.success) {
+      throw new Error(params.message || 'Failed to login');
+    }
   }
 
   private static async checkCaptcha(params: Login): Promise<void> {
@@ -216,6 +222,27 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   public setEmail(email: string, password: string) {
     this.email = email;
     this.emailPassword = password;
+  }
+
+  private async performRedirects(params: Login): Promise<void> {
+    const form = new FormData(params.transfer_parameters);
+    const urls = params.transfer_urls;
+
+    for (const url of urls) {
+      await got.post(
+        url,
+        {
+          cookieJar: this.cookieJar,
+          form,
+          followRedirect: true,
+          timeout: 5000,
+          agent: {
+            // @ts-ignore
+            https: this.proxyAgent,
+          },
+        },
+      );
+    }
   }
 
   private async checkGuard(params: Login): Promise<Login | undefined> {

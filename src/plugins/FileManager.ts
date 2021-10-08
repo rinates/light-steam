@@ -21,6 +21,8 @@ export default class FileManager {
 
   private limitFileName: string = 'limit.txt';
 
+  private failedFileName: string = 'failed.txt';
+
   private donateFileName: string = 'limitDonate.txt';
 
   private resultDirPath: string | undefined;
@@ -68,6 +70,12 @@ export default class FileManager {
 
     await fs.mkdir(this.resultDirPath);
     await fs.writeFile(`${this.resultDirPath}/result.txt`, '');
+  }
+
+  public async appendToFailed(account: string) {
+    logger.info(`Append account to the failed [${account}]`);
+
+    await fs.appendFile(`${this.resultDirPath}/${this.failedFileName}`, `${account}\n`);
   }
 
   public async appendToResult(account: string, limitInfo: LimitAttributes, steamId: string) {
