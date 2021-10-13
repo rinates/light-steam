@@ -2,9 +2,7 @@ import * as inquirer from 'inquirer';
 import clear from 'clear';
 
 import FileManager from '@/plugins/FileManager';
-
 import { initial, start } from '@/cli/interfaces';
-import { ConfigIsNotFound } from '@/cli/errors';
 
 export default async (): Promise<void> => {
   const fileManager = new FileManager();
@@ -29,6 +27,12 @@ export default async (): Promise<void> => {
         type: 'confirm',
         name: 'toUseProxy',
         message: 'Do you want to use proxy?',
+        default: false,
+      },
+      {
+        type: 'confirm',
+        name: 'toRemoveGuard',
+        message: 'Remove guard? (2fa email)',
         default: false,
       },
       {
@@ -66,11 +70,11 @@ export default async (): Promise<void> => {
       },
     ]).then((answer) => {
       clear();
-      initial();
 
       if (answer.useConfig && fileManager.configExists()) {
         start();
       } else {
+        initial();
         callMenu();
       }
     });

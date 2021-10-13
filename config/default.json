@@ -1,8 +1,28 @@
 {
     "Settings": {
-        "func": "add games to the steam library",
-        "toUseProxy": false,
+        "func": "remove red table",
+        "toUseProxy": true,
+        "toRemoveGuard": true,
         "workers": 1,
         "delay": 10
+    },
+    "DefaultImap": {
+        "imap.mail.ru": {
+            "port": 993,
+            "domains": [
+                "@mail.ru",
+                "@mail.ua",
+                "@internet.ru",
+                "@bk.ru",
+                "@inbox.ru",
+                "@list.ru"
+            ]
+        },
+        "imap.rambler.ru": {
+            "port": 993,
+            "domains": [
+                "@rambler.ru"
+            ]
+        }
     }
 }

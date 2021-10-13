@@ -1,9 +1,11 @@
 import got from 'got';
-import FormData from 'form-data';
 import { CookieJar } from 'tough-cookie';
 import { JSDOM } from 'jsdom';
 
 import SteamExecutor, { Login } from '@/cli/components/SteamExecutor';
+import ImapController from '@/cli/components/ImapController';
+import delay from '@/cli/utils/sleep';
+import { RemoverUrlIsNotFound } from '@/cli/errors';
 
 interface PublicProfile {
   success: number,
@@ -46,10 +48,11 @@ export default class AccountController {
   public async doAccountUnlock(): Promise<SteamUnlockStatus> {
     logger.info(`Trying to unlock account [${this.steam.username}]`);
 
-    const form = new FormData();
-    form.append('unlockcode', this.code);
-    form.append('sessionid', this.steam.steamId);
-    form.append('wizard_ajax', 1);
+    const form = {
+      unlockcode: this.code,
+      sessionid: this.steam.sessionId,
+      wizard_ajax: 1,
+    };
 
     return got.post(
       'https://help.steampowered.com/ru/wizard/AjaxDoAccountUnlock',
@@ -58,7 +61,6 @@ export default class AccountController {
         form,
         timeout: 5000,
         agent: {
-          // @ts-ignore
           https: this.steam.proxyAgent,
         },
       },
@@ -74,7 +76,6 @@ export default class AccountController {
         cookieJar: this.cookieJar,
         timeout: 5000,
         agent: {
-          // @ts-ignore
           https: this.steam.proxyAgent,
         },
       },
@@ -120,13 +121,89 @@ export default class AccountController {
         form,
         timeout: 5000,
         agent: {
-          // @ts-ignore
           https: this.steam.proxyAgent,
         },
       },
     ).json();
 
     return publicProfileResponse;
+  }
+
+  public async removeSteamGuard(): Promise<void> {
+    logger.info(`Removing steam guard (if's on) [${this.steam.username}]`);
+
+    if (!this.steam.hasSteamGuard) {
+      logger.info(`The steam guard has already been disabled [${this.steam.username}]`);
+
+      return;
+    }
+
+    const form = {
+      action: 'actuallynone',
+      sessionid: this.steam.sessionId,
+    };
+
+    await got.post(
+      'https://store.steampowered.com/twofactor/manage_action',
+      {
+        cookieJar: this.cookieJar,
+        form,
+        timeout: 5000,
+        agent: {
+          https: this.steam.proxyAgent,
+        },
+      },
+    );
+
+    const removerUrl = await this.getSteamGuardRemoverUrl();
+
+    if (!removerUrl) throw new RemoverUrlIsNotFound('Remover url is not found');
+
+    const response = await got(
+      removerUrl,
+      {
+        cookieJar: this.cookieJar,
+        timeout: 5000,
+        agent: {
+          https: this.steam.proxyAgent,
+        },
+      },
+    );
+
+    if (response.statusCode === 200) {
+      logger.info(`Steam guard has been disabled success [${this.steam.username}]`);
+    } else {
+      throw new Error(`Something wrong with connections. Status code: ${response.statusCode} [${this.steam.username}]`);
+    }
+  }
+
+  private async getSteamGuardRemoverUrl(): Promise<string | null> {
+    if (this.steam.email && this.steam.emailPassword) {
+      const mail: ImapController = new ImapController(this.steam.email, this.steam.emailPassword);
+
+      await mail.setMailSettings();
+      await mail.setConnection();
+
+      for (let i = 0; i < 20; i += 1) {
+        logger.info(`Getting url to remove guard [${this.steam.email}]`);
+
+        await delay(3);
+
+        const uids = await mail.getAllUids();
+        const lastMail = await mail.getMail(uids[0]);
+        const url = await mail.getSteamGuardDisableUrl(lastMail);
+
+        if (url) {
+          await mail.closeConnection();
+
+          logger.info(`Steam guard removed successful [${this.steam.username}]`);
+
+          return url;
+        }
+      }
+    }
+
+    return null;
   }
 
   public async addGamesToLibrary(games: Array<string>): Promise<void> {
@@ -146,7 +223,6 @@ export default class AccountController {
           form,
           timeout: 5000,
           agent: {
-            // @ts-ignore
             https: this.steam.proxyAgent,
           },
         },

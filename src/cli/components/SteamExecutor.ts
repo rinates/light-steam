@@ -11,6 +11,7 @@ import {
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
 import delay from '@/cli/utils/sleep';
+import config from '@/config';
 
 interface SteamExecutorAttributes {
   username: string;
@@ -51,9 +52,11 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
   public steamId: string | undefined;
 
+  public hasSteamGuard: boolean | undefined;
+
   private emailAuth: string | undefined;
 
-  private proxyAgent: HttpsProxyAgent | undefined;
+  public proxyAgent: HttpsProxyAgent | undefined;
 
   private steamUrls: Array<string> = [
     'https://steamcommunity.com',
@@ -237,7 +240,6 @@ export default class SteamExecutor implements SteamExecutorAttributes {
           followRedirect: true,
           timeout: 5000,
           agent: {
-            // @ts-ignore
             https: this.proxyAgent,
           },
         },
@@ -249,10 +251,12 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     logger.info(`Check guard [${this.username}]`);
 
     if (params.emailauth_needed) {
+      this.hasSteamGuard = true;
+
       if (this.email && this.emailPassword) {
         const mail: ImapController = new ImapController(this.email, this.emailPassword);
 
-        await mail.setMailSettings('imap.mail.ru', 993);
+        await mail.setMailSettings();
         await mail.setConnection();
 
         for (let i = 0; i < 20; i += 1) {
@@ -260,11 +264,14 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
           await delay(3);
 
-          const uids: Array<number> = await mail.getAllUids();
-          const code: string | null = await mail.getCode(uids[0]);
+          const uids = await mail.getAllUids();
+          const lastMail = await mail.getMail(uids[0]);
+          const code = await mail.getCode(lastMail);
 
           if (code) {
             this.emailAuth = code;
+
+            await mail.closeConnection();
 
             return this.sendLoginRequest();
           }

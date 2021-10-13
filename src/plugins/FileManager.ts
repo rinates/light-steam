@@ -37,7 +37,27 @@ export default class FileManager {
   private currentDir: string = process.cwd();
 
   public async saveConfig(config: ConfigAttributes) {
-    await fs.writeFile(`${this.currentDir}/config/default.json`, JSON.stringify({ Settings: config }, null, 4));
+    const defaultImap = {
+      'imap.mail.ru': {
+        port: 993,
+        domains: [
+          '@mail.ru',
+          '@mail.ua',
+          '@internet.ru',
+          '@bk.ru',
+          '@inbox.ru',
+          '@list.ru',
+        ],
+      },
+      'imap.rambler.ru': {
+        port: 993,
+        domains: [
+          '@rambler.ru',
+        ],
+      },
+    };
+
+    await fs.writeFile(`${this.currentDir}/config/default.json`, JSON.stringify({ Settings: config, DefaultImap: defaultImap }, null, 4));
     logger.info('Config was created success');
   }
 

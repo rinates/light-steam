@@ -15,6 +15,7 @@ type Task = {
   action: string;
   account: string;
   toUseProxy: boolean;
+  toRemoveGuard: boolean;
   proxy: string | undefined;
   games: Array<string>;
 };
@@ -27,7 +28,7 @@ interface ValidAccountAttributes {
 
 const injector = async (args: Task): Promise<ValidAccountAttributes> => {
   const {
-    action, account, toUseProxy, proxy, games,
+    action, account, toUseProxy, toRemoveGuard, proxy, games,
   } = args;
 
   logger.info(`Starting to inject an account [${account}]`);
@@ -54,6 +55,8 @@ const injector = async (args: Task): Promise<ValidAccountAttributes> => {
   };
 
   await accountController.doSetPublicProfile();
+
+  if (toRemoveGuard) await accountController.removeSteamGuard();
 
   if (action === 'remove red table' && acc.code) {
     logger.info('Removing read table from the account');
@@ -86,7 +89,7 @@ const executor = async (settings: ConfigAttributes) => {
   const accounts = await fileManager.getAccounts();
   const games = await fileManager.getGames();
   const {
-    func, workers, toUseProxy, delay,
+    func, workers, toUseProxy, toRemoveGuard, delay,
   } = settings;
   const q: queueAsPromised<Task> = fastq.promise(injector, workers);
   let proxies;
@@ -100,13 +103,14 @@ const executor = async (settings: ConfigAttributes) => {
 
   for (let i = 0; i < accounts.length; i += 1) {
     const account = accounts[i].trim();
-    proxy = proxies ? proxies[proxies.length % i] : undefined;
+    proxy = proxies ? proxies[proxies.length % (i + 1)] : undefined;
 
     q
       .push({
         action: func,
         account,
         toUseProxy,
+        toRemoveGuard,
         proxy,
         games,
       })
@@ -124,12 +128,12 @@ const executor = async (settings: ConfigAttributes) => {
 };
 
 export default async () => {
-  const settings: ConfigAttributes = await config();
+  const settings = await config();
 
   await clear();
   await initial();
-  await showSettings(settings);
+  await showSettings(settings.Settings);
   await sleep(3);
   await clear();
-  await executor(settings);
+  await executor(settings.Settings);
 };

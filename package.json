@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
-    "build": "tsc",
+    "build": "ttsc",
     "commit": "cz"
   },
   "keywords": [],
@@ -17,7 +17,6 @@
     "clui": "^0.3.6",
     "config": "^3.3.6",
     "fastq": "^1.13.0",
-    "figlet": "^1.5.2",
     "form-data": "^4.0.0",
     "got": "^11.8.2",
     "hpagent": "^0.1.2",
@@ -26,8 +25,6 @@
     "inquirer": "^8.1.5",
     "jsdom": "^17.0.0",
     "lodash": "^4.17.21",
-    "minimist": "^1.2.5",
-    "module-alias": "^2.2.2",
     "node-bignumber": "^1.2.2",
     "tough-cookie": "^4.0.0",
     "winston": "^3.3.3"
@@ -36,14 +33,12 @@
     "@types/clear": "^0.1.2",
     "@types/clui": "^0.3.1",
     "@types/config": "^0.0.39",
-    "@types/figlet": "^1.5.4",
     "@types/form-data": "^2.5.0",
     "@types/html-to-text": "^8.0.1",
     "@types/imap-simple": "^4.2.5",
     "@types/inquirer": "^8.1.2",
     "@types/jsdom": "^16.2.13",
     "@types/lodash": "^4.14.175",
-    "@types/module-alias": "^2.0.1",
     "@types/tough-cookie": "^4.0.1",
     "@typescript-eslint/eslint-plugin": "^4.31.2",
     "@typescript-eslint/parser": "^4.31.2",
@@ -52,7 +47,10 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-import": "^2.24.2",
-    "typescript": "^4.4.3"
+    "tsconfig-paths": "^3.11.0",
+    "ttypescript": "^1.5.12",
+    "typescript": "^4.4.3",
+    "typescript-transform-paths": "^3.3.1"
   },
   "config": {
     "commitizen": {
