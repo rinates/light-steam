@@ -21,7 +21,7 @@ type Task = {
 };
 
 interface ValidAccountAttributes {
-  account: string;
+  reformAccount: string;
   limitInfo: LimitAttributes;
   steamId: string | undefined;
 }
@@ -35,6 +35,7 @@ const injector = async (args: Task): Promise<ValidAccountAttributes> => {
 
   const acc = await validator(account);
   const steamExecutor = new SteamExecutor(acc.login, acc.password);
+  const reformAccount = `${acc.login}:${acc.password}${acc.email && acc.emailPassword ? `:${acc.email}:${acc.emailPassword}` : ''}`;
 
   if (acc.email && acc.emailPassword) {
     await steamExecutor.setEmail(acc.email, acc.emailPassword);
@@ -78,7 +79,7 @@ const injector = async (args: Task): Promise<ValidAccountAttributes> => {
   }
 
   return {
-    account,
+    reformAccount,
     limitInfo,
     steamId,
   };
@@ -115,7 +116,7 @@ const executor = async (settings: ConfigAttributes) => {
         games,
       })
       .then(async (value) => {
-        await fileManager.appendToResult(value.account, value.limitInfo, value.steamId);
+        await fileManager.appendToResult(value.reformAccount, value.limitInfo, value.steamId);
       })
       .catch((err) => {
         fileManager.appendToFailed(account);
