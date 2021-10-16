@@ -57,10 +57,8 @@ const injector = async (args: Task): Promise<ValidAccountAttributes> => {
 
   await accountController.doSetPublicProfile();
 
-  if (toRemoveGuard) await accountController.removeSteamGuard();
-
   if (action === 'remove red table' && acc.code) {
-    logger.info('Removing read table from the account');
+    logger.info('Removing red table from the account');
 
     await removeRedTable(acc.code);
   }
@@ -77,6 +75,8 @@ const injector = async (args: Task): Promise<ValidAccountAttributes> => {
     await accountController.addGamesToLibrary(games);
     await removeRedTable(acc.code);
   }
+
+  if (toRemoveGuard) await accountController.removeSteamGuard();
 
   return {
     reformAccount,

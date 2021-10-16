@@ -11,7 +11,6 @@ import {
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
 import delay from '@/cli/utils/sleep';
-import config from '@/config';
 
 interface SteamExecutorAttributes {
   username: string;
@@ -96,7 +95,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   private async sendLoginRequestHelp() {
     logger.info(`Send login help request [${this.username}]`);
 
-    await got('https://help.steampowered.com/', { cookieJar: this.cookieJar });
+    await got('https://help.steampowered.com/', { cookieJar: this.cookieJar, timeout: 5000 });
 
     const params = await this.prepareParams();
     const form = new FormData();
@@ -126,7 +125,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   private async sendLoginRequest() {
     logger.info(`Send login request [${this.username}]`);
 
-    await got('https://steamcommunity.com/', { cookieJar: this.cookieJar });
+    await got('https://steamcommunity.com/', { cookieJar: this.cookieJar, timeout: 5000 });
 
     const params = await this.prepareParams();
     const form = new FormData();
