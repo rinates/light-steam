@@ -34,29 +34,17 @@ export interface Login {
 
 export default class SteamExecutor implements SteamExecutorAttributes {
   public cookieJar: CookieJar = new CookieJar();
-
   public sessionId: string = SteamExecutor.generateSessionId();
-
   public username: string;
-
   public password: string;
-
   public email: string | undefined;
-
   public emailPassword: string | undefined;
-
   public loginParams: Login | undefined;
-
   public loginParamsHelp: Login | undefined;
-
   public steamId: string | undefined;
-
   public hasSteamGuard: boolean | undefined;
-
   private emailAuth: string | undefined;
-
   public proxyAgent: HttpsProxyAgent | undefined;
-
   private steamUrls: Array<string> = [
     'https://steamcommunity.com',
     'https://store.steampowered.com',

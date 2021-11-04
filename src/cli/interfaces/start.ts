@@ -13,6 +13,7 @@ import AccountController, { LimitAttributes } from '@/cli/components/AccountCont
 
 type Task = {
   action: string;
+  delay: number;
   account: string;
   toUseProxy: boolean;
   toRemoveGuard: boolean;
@@ -28,8 +29,10 @@ interface ValidAccountAttributes {
 
 const injector = async (args: Task): Promise<ValidAccountAttributes> => {
   const {
-    action, account, toUseProxy, toRemoveGuard, proxy, games,
+    action, delay, account, toUseProxy, toRemoveGuard, proxy, games,
   } = args;
+
+  await sleep(delay);
 
   logger.info(`Starting to inject an account [${account}]`);
 
@@ -109,6 +112,7 @@ const executor = async (settings: ConfigAttributes) => {
     q
       .push({
         action: func,
+        delay,
         account,
         toUseProxy,
         toRemoveGuard,

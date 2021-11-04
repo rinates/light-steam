@@ -6,29 +6,17 @@ import { LimitAttributes } from '@/cli/components/AccountController';
 
 export default class FileManager {
   private configDir: string = 'config';
-
   private resultDir: string = 'result';
-
   private proxyFile: string = 'proxy.txt';
-
   private baseFile: string = 'base.txt';
-
   private gamesFile: string = 'games.txt';
-
   private resultFileName: string = 'result.txt';
-
   private noLimitFileName: string = 'noLimit.txt';
-
   private limitFileName: string = 'limit.txt';
-
   private failedFileName: string = 'failed.txt';
-
   private donateFileName: string = 'limitDonate.txt';
-
   private resultDirPath: string | undefined;
-
   private currentDate: Date = new Date();
-
   private resultDirFileName: string = [
     `${this.currentDate.getFullYear()}-${this.currentDate.getMonth()}-${this.currentDate.getDate()}_`,
     `${this.currentDate.getHours()}-${this.currentDate.getMinutes()}-${this.currentDate.getSeconds()}`,

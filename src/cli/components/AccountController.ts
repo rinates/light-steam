@@ -28,11 +28,8 @@ export interface SteamUnlockStatus {
 
 export default class AccountController {
   public steam: SteamExecutor;
-
   public cookieJar: CookieJar;
-
   public loginParams: Login | undefined;
-
   private code: string | undefined;
 
   constructor(steam: SteamExecutor) {

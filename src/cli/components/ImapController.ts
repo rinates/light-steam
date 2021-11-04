@@ -10,11 +10,8 @@ import config from '@/config';
 
 export default class ImapController {
   public config: ImapSimpleOptions | undefined;
-
   public connection: ImapSimple | undefined;
-
   public email: string;
-
   public pass: string;
 
   constructor(email: string, pass: string) {
