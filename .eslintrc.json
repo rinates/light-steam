@@ -15,6 +15,7 @@
     "@typescript-eslint"
   ],
   "rules": {
+    "camelcase": "off",
     "lines-between-class-members": [
       "error",
       "always",
