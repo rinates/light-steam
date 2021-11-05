@@ -7,7 +7,7 @@ import FormData from 'form-data';
 
 import rsaGenerator from '@/cli/utils/rsa';
 import {
-  CaptchaNeeded, EmailNeeded, NoSteamId, TimeoutGettingAuthCode,
+  CaptchaNeeded, EmailNeeded, FailedToLogin, NoSteamId, TimeoutGettingAuthCode,
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
 import delay from '@/cli/utils/sleep';
@@ -60,23 +60,39 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   }
 
   public async login() {
-    this.loginParams = await this.sendLoginRequest();
-    this.loginParams = await this.checkGuard(this.loginParams);
-    this.loginParamsHelp = await this.sendLoginRequestHelp();
-    this.loginParamsHelp = await this.checkGuard(this.loginParamsHelp);
+    for (let i = 1; i < 6; i += 1) {
+      logger.info(`[${i}/5] attempt to login [${this.email}]`);
 
-    if (this.loginParams && this.loginParamsHelp) {
-      await SteamExecutor.checkCaptcha(this.loginParams);
-      await SteamExecutor.checkCaptcha(this.loginParamsHelp);
-      await SteamExecutor.assertValid(this.loginParams);
-      await SteamExecutor.assertValid(this.loginParamsHelp);
-      await this.performRedirects(this.loginParams);
-      await this.setSessionId();
-      await this.setSteamID();
-      await this.setProfileSettings();
+      try {
+        this.loginParams = await this.sendLoginRequest();
+        this.loginParams = await this.checkGuard(this.loginParams);
+        this.loginParamsHelp = await this.sendLoginRequestHelp();
+        this.loginParamsHelp = await this.checkGuard(this.loginParamsHelp);
 
-      logger.info(`Success login [${this.email}]`);
+        if (this.loginParams && this.loginParamsHelp) {
+          await SteamExecutor.checkCaptcha(this.loginParams);
+          await SteamExecutor.checkCaptcha(this.loginParamsHelp);
+          await SteamExecutor.assertValid(this.loginParams);
+          await SteamExecutor.assertValid(this.loginParamsHelp);
+          await this.performRedirects(this.loginParams);
+          await this.setSessionId();
+          await this.setSteamID();
+          await this.setProfileSettings();
+
+          logger.info(`Success login [${this.email}]`);
+
+          return;
+        }
+      } catch (e) { logger.error(e); }
+
+      await delay(60);
     }
+
+    logger.info('Login was failed, duo some reasons. Let\'s rest to the proxies for 10 minutes');
+
+    await delay(60 * 10);
+
+    throw new FailedToLogin(`Failed to login [${this.email}]`);
   }
 
   private async sendLoginRequestHelp() {

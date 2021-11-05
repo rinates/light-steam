@@ -13,6 +13,7 @@ import AccountInvalid from './AccountInvalid';
 import IncorrectEmail from './IncorrectEmail';
 import MailIsNotFound from './MailIsNotFound';
 import RemoverUrlIsNotFound from './RemoverUrlIsNotFound';
+import FailedToLogin from './FailedToLogin';
 
 export {
   ConfigIsNotFound,
@@ -30,4 +31,5 @@ export {
   IncorrectEmail,
   MailIsNotFound,
   RemoverUrlIsNotFound,
+  FailedToLogin,
 };
