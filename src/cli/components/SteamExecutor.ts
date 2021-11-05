@@ -24,9 +24,7 @@ interface Encrypt {
 
 export interface Login {
   success: boolean,
-  // eslint-disable-next-line camelcase
   captcha_needed?: boolean,
-  // eslint-disable-next-line camelcase
   emailauth_needed?: boolean,
 
   [key: string]: any
@@ -45,6 +43,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   public hasSteamGuard: boolean | undefined;
   private emailAuth: string | undefined;
   public proxyAgent: HttpsProxyAgent | undefined;
+  private headers = { 'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7' }
   private steamUrls: Array<string> = [
     'https://steamcommunity.com',
     'https://store.steampowered.com',
@@ -83,7 +82,11 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   private async sendLoginRequestHelp() {
     logger.info(`Send login help request [${this.username}]`);
 
-    await got('https://help.steampowered.com/', { cookieJar: this.cookieJar, timeout: 5000 });
+    await got('https://help.steampowered.com/', {
+      headers: this.headers,
+      cookieJar: this.cookieJar,
+      timeout: 5000,
+    });
 
     const params = await this.prepareParams();
     const form = new FormData();
@@ -97,6 +100,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     const loginResponse: Login = await got.post(
       'https://help.steampowered.com/en/login/dologin/',
       {
+        headers: this.headers,
         cookieJar: this.cookieJar,
         body: form,
         followRedirect: true,
@@ -127,6 +131,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     const loginResponse: Login = await got.post(
       'https://steamcommunity.com/login/dologin/',
       {
+        headers: this.headers,
         cookieJar: this.cookieJar,
         body: form,
         followRedirect: true,
