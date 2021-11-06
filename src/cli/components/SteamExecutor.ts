@@ -7,7 +7,7 @@ import FormData from 'form-data';
 
 import rsaGenerator from '@/cli/utils/rsa';
 import {
-  CaptchaNeeded, EmailNeeded, FailedToLogin, NoSteamId, TimeoutGettingAuthCode,
+  CaptchaNeeded, EmailNeeded, NoSteamId, TimeoutGettingAuthCode,
 } from '@/cli/errors';
 import ImapController from '@/cli/components/ImapController';
 import delay from '@/cli/utils/sleep';
@@ -43,7 +43,6 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   public hasSteamGuard: boolean | undefined;
   private emailAuth: string | undefined;
   public proxyAgent: HttpsProxyAgent | undefined;
-  private headers = { 'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7' }
   private steamUrls: Array<string> = [
     'https://steamcommunity.com',
     'https://store.steampowered.com',
@@ -60,46 +59,29 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   }
 
   public async login() {
-    for (let i = 1; i < 6; i += 1) {
-      logger.info(`[${i}/5] attempt to login [${this.email}]`);
+    this.loginParams = await this.sendLoginRequest();
+    this.loginParams = await this.checkGuard(this.loginParams);
+    this.loginParamsHelp = await this.sendLoginRequestHelp();
+    this.loginParamsHelp = await this.checkGuard(this.loginParamsHelp);
 
-      try {
-        this.loginParams = await this.sendLoginRequest();
-        this.loginParams = await this.checkGuard(this.loginParams);
-        this.loginParamsHelp = await this.sendLoginRequestHelp();
-        this.loginParamsHelp = await this.checkGuard(this.loginParamsHelp);
+    if (this.loginParams && this.loginParamsHelp) {
+      await SteamExecutor.checkCaptcha(this.loginParams);
+      await SteamExecutor.checkCaptcha(this.loginParamsHelp);
+      await SteamExecutor.assertValid(this.loginParams);
+      await SteamExecutor.assertValid(this.loginParamsHelp);
+      await this.performRedirects(this.loginParams);
+      await this.setSessionId();
+      await this.setSteamID();
+      await this.setProfileSettings();
 
-        if (this.loginParams && this.loginParamsHelp) {
-          await SteamExecutor.checkCaptcha(this.loginParams);
-          await SteamExecutor.checkCaptcha(this.loginParamsHelp);
-          await SteamExecutor.assertValid(this.loginParams);
-          await SteamExecutor.assertValid(this.loginParamsHelp);
-          await this.performRedirects(this.loginParams);
-          await this.setSessionId();
-          await this.setSteamID();
-          await this.setProfileSettings();
-
-          logger.info(`Success login [${this.email}]`);
-
-          return;
-        }
-      } catch (e) { logger.error(e); }
-
-      await delay(60);
+      logger.info(`Success login [${this.email}]`);
     }
-
-    logger.info('Login was failed, duo some reasons. Let\'s rest to the proxies for 10 minutes');
-
-    await delay(60 * 10);
-
-    throw new FailedToLogin(`Failed to login [${this.email}]`);
   }
 
   private async sendLoginRequestHelp() {
     logger.info(`Send login help request [${this.username}]`);
 
     await got('https://help.steampowered.com/', {
-      headers: this.headers,
       cookieJar: this.cookieJar,
       timeout: 5000,
     });
@@ -116,7 +98,6 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     const loginResponse: Login = await got.post(
       'https://help.steampowered.com/en/login/dologin/',
       {
-        headers: this.headers,
         cookieJar: this.cookieJar,
         body: form,
         followRedirect: true,
@@ -147,7 +128,6 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     const loginResponse: Login = await got.post(
       'https://steamcommunity.com/login/dologin/',
       {
-        headers: this.headers,
         cookieJar: this.cookieJar,
         body: form,
         followRedirect: true,
