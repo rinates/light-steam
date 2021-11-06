@@ -181,10 +181,10 @@ export default class AccountController {
       await mail.setMailSettings();
       await mail.setConnection();
 
-      for (let i = 0; i < 20; i += 1) {
+      for (let i = 0; i < 12; i += 1) {
         logger.info(`Getting url to remove guard [${this.steam.email}]`);
 
-        await delay(3);
+        await delay(10);
 
         const uids = await mail.getAllUids();
         const lastMail = await mail.getMail(uids[0]);

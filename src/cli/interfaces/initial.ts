@@ -13,7 +13,7 @@ export default async (): Promise<void> => {
   console.log([
     chalk.green(text),
     `${' '.repeat(16)}${chalk.green(chalk.bold('Development @rinaigen'))}`,
-    `${' '.repeat(15)}${chalk.gray('Last update: 13.10.2021')}`,
+    `${' '.repeat(15)}${chalk.gray('Last update: 06.11.2021')}`,
     '',
   ].join('\n'));
 };

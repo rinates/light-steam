@@ -36,11 +36,12 @@ export default async (account: string): Promise<AccountAttributes> => {
     return acc;
   }
 
-  if (accountList.length === 5) {
-    [acc.login, acc.password, acc.email, acc.emailPassword, acc.code] = accountList;
+  if (accountList.length >= 5 && accountList.length <= 10) {
+    [acc.login, acc.password, acc.email, acc.emailPassword] = accountList;
+    acc.code = accountList[accountList.length - 1];
 
     return acc;
   }
 
-  throw AccountInvalid;
+  throw new AccountInvalid('Account valid error');
 };
