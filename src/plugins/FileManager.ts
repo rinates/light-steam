@@ -103,7 +103,7 @@ export default class FileManager {
       await fs.appendFile(`${this.resultDirPath}/${this.noLimitFileName}`, data);
     }
 
-    if (!limitInfo.limit && limitInfo.balance !== 0) {
+    if (limitInfo.limit && limitInfo.balance !== 0) {
       await fs.appendFile(`${this.resultDirPath}/${this.donateFileName}`, data);
     }
 
