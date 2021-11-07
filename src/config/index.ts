@@ -6,6 +6,8 @@ export interface ConfigAttributes {
   toRemoveGuard: boolean;
   workers: number;
   delay: number;
+  delayAfterCaptcha: number;
+  waitForAuthCode: number;
 }
 
 export default async () => JSON.parse(await fs.readFile(`${process.cwd()}/config/default.json`, 'utf-8'));

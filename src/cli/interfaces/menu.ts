@@ -47,10 +47,28 @@ export default async (): Promise<void> => {
       {
         type: 'input',
         name: 'delay',
-        message: 'What the delay to use? (In seconds)',
+        message: 'What the delay to use before to start a script? (In seconds)',
         default: 10,
         filter(val) {
           return Number(val) || 10;
+        },
+      },
+      {
+        type: 'input',
+        name: 'delayAfterCaptcha',
+        message: 'What the delay to use after catch a captcha? (In seconds)',
+        default: 100,
+        filter(val) {
+          return Number(val) || 100;
+        },
+      },
+      {
+        type: 'input',
+        name: 'waitForAuthCode',
+        message: 'What the delay to wait for an auth code? (In seconds)',
+        default: 30,
+        filter(val) {
+          return Number(val) || 30;
         },
       },
     ]).then(async (answers) => {

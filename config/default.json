@@ -1,10 +1,11 @@
 {
     "Settings": {
-        "func": "remove red table",
+        "func": "add games to the steam library",
         "toUseProxy": true,
         "toRemoveGuard": true,
         "workers": 1,
-        "delay": 10
+        "delay": 0,
+        "delayAfterCaptcha": 100
     },
     "DefaultImap": {
         "imap.mail.ru": {

@@ -43,6 +43,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   public hasSteamGuard: boolean | undefined;
   private emailAuth: string | undefined;
   public proxyAgent: HttpsProxyAgent | undefined;
+  private delayAfterCaptcha: number = 30;
+  private waitForAuthCode: number = 30;
   private steamUrls: Array<string> = [
     'https://steamcommunity.com',
     'https://store.steampowered.com',
@@ -58,6 +60,14 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     return crypto.randomBytes(12).toString('hex');
   }
 
+  public async setDelayAfterCaptcha(delayAfterCaptcha: number) {
+    this.delayAfterCaptcha = delayAfterCaptcha;
+  }
+
+  public async setWaitForAuthCode(waitForAuthCode: number) {
+    this.delayAfterCaptcha = waitForAuthCode;
+  }
+
   public async login() {
     this.loginParams = await this.sendLoginRequest();
     this.loginParams = await this.checkGuard(this.loginParams);
@@ -65,8 +75,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     this.loginParamsHelp = await this.checkGuard(this.loginParamsHelp);
 
     if (this.loginParams && this.loginParamsHelp) {
-      await SteamExecutor.checkCaptcha(this.loginParams);
-      await SteamExecutor.checkCaptcha(this.loginParamsHelp);
+      await this.checkCaptcha(this.loginParams);
+      await this.checkCaptcha(this.loginParamsHelp);
       await SteamExecutor.assertValid(this.loginParams);
       await SteamExecutor.assertValid(this.loginParamsHelp);
       await this.performRedirects(this.loginParams);
@@ -204,8 +214,12 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     }
   }
 
-  private static async checkCaptcha(params: Login): Promise<void> {
+  private async checkCaptcha(params: Login): Promise<void> {
     if (params.captcha_needed) {
+      logger.info(`Before to throw an error (captcha). It's gonna sleep for ${this.delayAfterCaptcha} seconds [${this.username}]`);
+
+      await delay(this.delayAfterCaptcha);
+
       throw new CaptchaNeeded('You have to change proxy. There is a captcha');
     }
   }
@@ -243,14 +257,15 @@ export default class SteamExecutor implements SteamExecutorAttributes {
 
       if (this.email && this.emailPassword) {
         const mail: ImapController = new ImapController(this.email, this.emailPassword);
+        const timesToWait = Math.ceil(this.waitForAuthCode / 5);
 
         await mail.setMailSettings();
         await mail.setConnection();
 
-        for (let i = 0; i < 20; i += 1) {
+        for (let i = 0; i < timesToWait; i += 1) {
           logger.info(`Getting auth code [${this.email}]`);
 
-          await delay(3);
+          await delay(5);
 
           const uids = await mail.getAllUids();
           const lastMail = await mail.getMail(uids[0]);
