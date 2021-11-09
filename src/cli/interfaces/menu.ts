@@ -71,6 +71,15 @@ export default async (): Promise<void> => {
           return Number(val) || 30;
         },
       },
+      {
+        type: 'input',
+        name: 'delayTooManyLogin',
+        message: 'Delay after catch an error (too many login) (In seconds)',
+        default: 60,
+        filter(val) {
+          return Number(val) || 60;
+        },
+      },
     ]).then(async (answers) => {
       await fileManager.saveConfig(answers);
 

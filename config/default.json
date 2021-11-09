@@ -1,11 +1,13 @@
 {
     "Settings": {
         "func": "add games to the steam library",
-        "toUseProxy": true,
-        "toRemoveGuard": true,
+        "toUseProxy": false,
+        "toRemoveGuard": false,
         "workers": 1,
-        "delay": 0,
-        "delayAfterCaptcha": 100
+        "delay": 10,
+        "delayAfterCaptcha": 100,
+        "waitForAuthCode": 30,
+        "delayTooManyLogin": 60
     },
     "DefaultImap": {
         "imap.mail.ru": {

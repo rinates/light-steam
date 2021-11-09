@@ -16,6 +16,7 @@ type Task = {
   delay: number;
   delayAfterCaptcha: number;
   waitForAuthCode: number;
+  delayTooManyLogin: number;
   account: string;
   toUseProxy: boolean;
   toRemoveGuard: boolean;
@@ -32,7 +33,7 @@ interface ValidAccountAttributes {
 const injector = async (args: Task): Promise<ValidAccountAttributes> => {
   const {
     action, delay, delayAfterCaptcha,
-    waitForAuthCode, account, toUseProxy,
+    waitForAuthCode, delayTooManyLogin, account, toUseProxy,
     toRemoveGuard, proxy, games,
   } = args;
 
@@ -52,6 +53,7 @@ const injector = async (args: Task): Promise<ValidAccountAttributes> => {
 
   await steamExecutor.setDelayAfterCaptcha(delayAfterCaptcha);
   await steamExecutor.setWaitForAuthCode(waitForAuthCode);
+  await steamExecutor.setDelayAfterTooManyLogin(delayTooManyLogin);
   await steamExecutor.login();
 
   const { steamId } = steamExecutor;
@@ -99,7 +101,8 @@ const executor = async (settings: ConfigAttributes) => {
   const accounts = await fileManager.getAccounts();
   const games = await fileManager.getGames();
   const {
-    func, workers, toUseProxy, toRemoveGuard, delay, delayAfterCaptcha, waitForAuthCode,
+    func, workers, toUseProxy, toRemoveGuard,
+    delay, delayAfterCaptcha, waitForAuthCode, delayTooManyLogin,
   } = settings;
   const q: queueAsPromised<Task> = fastq.promise(injector, workers);
   let proxies;
@@ -121,6 +124,7 @@ const executor = async (settings: ConfigAttributes) => {
         delay,
         delayAfterCaptcha,
         waitForAuthCode,
+        delayTooManyLogin,
         account,
         toUseProxy,
         toRemoveGuard,

@@ -45,6 +45,7 @@ export default class SteamExecutor implements SteamExecutorAttributes {
   public proxyAgent: HttpsProxyAgent | undefined;
   private delayAfterCaptcha: number = 30;
   private waitForAuthCode: number = 30;
+  private delayAfterTooManyLogin: number = 30;
   private steamUrls: Array<string> = [
     'https://steamcommunity.com',
     'https://store.steampowered.com',
@@ -68,6 +69,10 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     this.delayAfterCaptcha = waitForAuthCode;
   }
 
+  public async setDelayAfterTooManyLogin(delayAfterTooManyLogin: number) {
+    this.delayAfterTooManyLogin = delayAfterTooManyLogin;
+  }
+
   public async login() {
     this.loginParams = await this.sendLoginRequest();
     this.loginParams = await this.checkGuard(this.loginParams);
@@ -77,8 +82,8 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     if (this.loginParams && this.loginParamsHelp) {
       await this.checkCaptcha(this.loginParams);
       await this.checkCaptcha(this.loginParamsHelp);
-      await SteamExecutor.assertValid(this.loginParams);
-      await SteamExecutor.assertValid(this.loginParamsHelp);
+      await this.assertValid(this.loginParams);
+      await this.assertValid(this.loginParamsHelp);
       await this.performRedirects(this.loginParams);
       await this.setSessionId();
       await this.setSteamID();
@@ -208,8 +213,16 @@ export default class SteamExecutor implements SteamExecutorAttributes {
     });
   }
 
-  private static async assertValid(params: Login): Promise<void> {
+  private async assertValid(params: Login): Promise<void> {
+    const tooManyAttempts = 'There have been too many login failures from your network in a short time period.  Please wait and try again later.';
+
     if (!params.success) {
+      if (params.message === tooManyAttempts) {
+        logger.info(`Before to throw an error (too many login failures). It's gonna sleep for ${this.delayAfterTooManyLogin} seconds [${this.username}]`);
+
+        await delay(this.delayAfterTooManyLogin);
+      }
+
       throw new Error(params.message || 'Failed to login');
     }
   }
